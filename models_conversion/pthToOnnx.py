@@ -1,17 +1,17 @@
 import numpy as np
 import onnxruntime
-import torch.onnx
+import torch
 from ..training.LSTM import myLSTM
 
 
-def export_to_onnx(output_size):
+def export_to_onnx(input_size, hidden_size, num_layers, output_size):
     """ Exports the pytorch model to onnx """
-    model = myLSTM(150, 128, 2, output_size)
-    WEiGHTS_PATH = "./models/slr_"+str(output_size)+".pth"
-    OUTPUT_PATH = "./models/slr_"+str(output_size)+".onnx"
-    model.load_state_dict(torch.load(WEiGHTS_PATH))
+    model = myLSTM(input_size, hidden_size, num_layers, output_size)
+    WEIGHTS_PATH = "slr_mirror/outputs/slr_"+str(output_size)+".pth"
+    OUTPUT_PATH = "slr_mirror/outputs/slr_"+str(output_size)+".onnx"
+    model.load_state_dict(torch.load(WEIGHTS_PATH))
     model.eval()
-    input = torch.randn(1, 30, 150, requires_grad=True)
+    input = torch.randn(1, 30, input_size, requires_grad=True)
     torch_out = model(input)
 
     torch.onnx.export(

@@ -8,7 +8,8 @@
         "orientation": "horizontal",
         "angle": 17,
         "x_offset": -230,
-        "y_offset": 100
+        "y_offset": 100,
+        "number": 2
     },
     "applications": {
         "startup": ["menu", "hands", "body", "face"],

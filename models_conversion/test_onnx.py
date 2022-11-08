@@ -9,7 +9,7 @@ import time
 class TestOnnx():
     def __init__(self, output_size):
 
-        self.model = ort.InferenceSession("/home/adrlfv/Documents/ESILV/A4/AI/SLR_project_mirror/models/slr_"+str(output_size)+".onnx", providers=[
+        self.model = ort.InferenceSession("/home/adrlfv/Documents/ESILV/A4/AI/SLR_project_mirror/outputs/slr_"+str(output_size)+".onnx", providers=[
                     'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
 
         self.colors = [(245, 117, 16), (117, 245, 16), (16, 117, 245)]

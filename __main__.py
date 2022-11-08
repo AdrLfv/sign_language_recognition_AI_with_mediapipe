@@ -22,7 +22,7 @@ from tqdm import tqdm  # For nice progress bar!
 from .drivers.video import IntelCamera, StandardCamera 
 
 
-def launch_LSTM(output_size, train, weights_type, make_data_augmentation):
+def launch_LSTM(output_size, make_train, weights_type, make_data_augmentation, hidden_size,num_layers):
     # Set device cuda for GPU if it's available otherwise run on the CPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -31,17 +31,15 @@ def launch_LSTM(output_size, train, weights_type, make_data_augmentation):
     NUM_WORKERS = 4
     num_epochs = 100  # number times to iterate over the dataset
     DECAY = 1e-4
-    hidden_size = 128  # number of features in the hidden state h
-    num_layers = 2
 
     # on crée des instances de preprocess en leur donnant le chemin d'accès ainsi que le nombre de séquences dans chaque dossier
     # en fonction de si leur type de preprocess est train, valid, test.
     train_preprocess = Preprocess(
-        actions, DATA_PATH_TRAIN, nb_sequences_train, sequence_length, make_data_augmentation)
+        actions, DATA_PATH+"/Train", sequence_length, make_data_augmentation)
     valid_preprocess = Preprocess(
-        actions, DATA_PATH_VALID, nb_sequences_valid, sequence_length, False)
+        actions, DATA_PATH+"/Valid", sequence_length, False)
     test_preprocess = Preprocess(
-        actions, DATA_PATH_TEST, nb_sequences_test, sequence_length, False)
+        actions, DATA_PATH+"/Test", sequence_length, False)
 
     input_size = train_preprocess.get_data_length()
 
@@ -54,42 +52,16 @@ def launch_LSTM(output_size, train, weights_type, make_data_augmentation):
     valid_loader = DataLoader(valid_preprocess, batch_size=batch_size, shuffle=True, num_workers=NUM_WORKERS,
                               pin_memory=True)
     # Initialize network
-    
-
-    if(train):  # On verifie si on souhaite reentrainer le modele
-        
-        # export_to_onnx(output_size)
-        if(weights_type == "onnx"):
-            try:
-                ort.InferenceSession("../outputs/slr_"+str(output_size)+".onnx", providers=[
-                    'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
-                print("Found valid onnx model")
-            except Exception as e:
-                print("Onnx model not found")
-                print(e)
-                try:
-                    export_to_onnx(output_size)
-                    print("Converted pth to onnx")
-                except:
-                    print("Unable to convert to onnx")
-                    weights_type = "pth"
-            model = None
-
-        if(weights_type == "pth"):
+    if(make_train):  
+        try:
             model = myLSTM(input_size,  hidden_size,
-                        num_layers, output_size).to(device)
-            try:
-                model.load_state_dict(torch.load(
-                    "../outputs/slr_"+str(output_size)+".pth"))
-                print("Found valid pth model")
-            except Exception as e:
-                print("Pth model not found")
-                
-                model = train_launch(model, output_size, learning_rate, DECAY,
-                                    num_epochs, train_loader, test_loader, valid_loader)
-            export_to_onnx(output_size)
+                num_layers, output_size).to(device)
+            model = train_launch(model, output_size, learning_rate, DECAY,
+                num_epochs, train_loader, test_loader, valid_loader)
+            export_to_onnx(input_size, hidden_size, num_layers, output_size)
+        except Exception as e:
+            print(e)
 
-    return model  # ,logits
 
 
 def train_loop(train_loader, model, criterion, optimizer):
@@ -153,31 +125,26 @@ def train_launch(model, output_size, learning_rate, DECAY, num_epochs, train_loa
     print(
         f"Accuracy on valid set: {test_loop(valid_loader, model, criterion)*100:.2f}")
 
-    torch.save(model.state_dict(), './outputs/slr_'+str(output_size)+'.pth')
+    torch.save(model.state_dict(), 'slr_mirror/outputs/slr_'+str(output_size)+'.pth')
     
     return model
 
 
 # on crée des dossiers dans lequels stocker les positions des points que l'on va enregistrer
-DATA_PATH_TRAIN = os.path.join('slr_mirror/dataset/MP_Data/Train')
-DATA_PATH_VALID = os.path.join('slr_mirror/dataset/MP_Data/Valid')
-DATA_PATH_TEST = os.path.join('slr_mirror/dataset/MP_Data/Test')
+DATA_PATH = os.path.join('slr_mirror/dataset/MP_Data')
 
 RESOLUTION_Y = int(1920)  # Screen resolution in pixel
 RESOLUTION_X = int(1080)
 
 # Thirty videos worth of data
-nb_sequences = 1
-nb_sequences_train = int(nb_sequences*80/100)
-nb_sequences_valid = int(nb_sequences*10/100)
-nb_sequences_test = int(nb_sequences*10/100)
+nb_sequences = 30
 
 # Videos are going to be 30 frames in length
 sequence_length = 30
 
+make_dataset = False
 make_train = True
-make_dataset = True
-make_data_augmentation = False
+make_data_augmentation = True
 make_tuto = False
 weights_type = "onnx"  # "pth"
 
@@ -185,11 +152,15 @@ if(make_dataset):
     make_train = True
 
 # dataset making : (ajouter des actions dans le actionsToAdd pour créer leur dataset)
-actionsToAdd = np.array(["empty", "nothing"])  #
+actionsToAdd = np.array(["empty", "nothing", 'hello', 'thanks', 'iloveyou'])  #
 
 # Actions that we try to detect
-actions = np.array(["nothing", "empty"])
-# , "nothing" 'hello', 'thanks', 'iloveyou', "what's up", "hey", "my", "name", "nice","to meet you"
+actions = np.array(["empty", "nothing", 'hello', 'thanks', 'iloveyou'])
+# , "nothing", 'hello', 'thanks', 'iloveyou', "what's up", "hey", "my", "name", "nice","to meet you"
+
+output_size = len(actions)
+hidden_size = 128
+num_layers = 2
 
 if os.path.exists("config.json"):
     with open("config.json", "r") as f:
@@ -218,20 +189,35 @@ else:
     SOURCE = StandardCamera(1920, 1080, 0)
 
 if (make_dataset):
-    CustomImageDataset(actionsToAdd, nb_sequences, sequence_length, DATA_PATH_TRAIN,
-    DATA_PATH_VALID, DATA_PATH_TEST, RESOLUTION_X, RESOLUTION_Y, SOURCE).__getitem__()
+    CustomImageDataset(actionsToAdd, nb_sequences, sequence_length, DATA_PATH, RESOLUTION_X, RESOLUTION_Y, SOURCE).__getitem__()
 
 #myTestOnnx = TestOnnx()
 
-model = launch_LSTM(len(actions), make_train, weights_type, make_data_augmentation)
+if(make_train):
+    print("Training")
+    launch_LSTM(output_size, make_train, weights_type, make_data_augmentation, hidden_size, num_layers)
+else:
+    try:
+        ort.InferenceSession("slr_mirror/outputs/slr_"+str(output_size)+".onnx", providers=[
+            'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
+        print("Found valid onnx model")
+    except Exception as e:
+        print("Onnx model not found")
+        print(e)
+        try:
+            print("Converting pth to onnx")
+            export_to_onnx(output_size, hidden_size, num_layers, output_size)
+        except Exception as e:
+            print(e)
+            print("Unable to convert to onnx")
 
-if make_tuto:
-    if(weights_type == "pth"):
-        myTest = Test(model, len(actions))
-    if(weights_type == "onnx"):
-        myTest = TestOnnx(len(actions))
-    myTuto = Tuto(actions, RESOLUTION_X, RESOLUTION_Y)
-    for action in actions:
-        if (action != "nothing" and action != "empty"):
-            myTuto.launch_tuto(action)
-            myTest.launch_test(actions, action, SOURCE, RESOLUTION_X, RESOLUTION_Y)
+# if make_tuto:
+#     if(weights_type == "pth"):
+#         myTest = Test(model, len(actions))
+#     if(weights_type == "onnx"):
+#         myTest = TestOnnx(len(actions))
+#     myTuto = Tuto(actions, RESOLUTION_X, RESOLUTION_Y)
+#     for action in actions:
+#         if (action != "nothing" and action != "empty"):
+#             myTuto.launch_tuto(action)
+#             myTest.launch_test(actions, action, SOURCE, RESOLUTION_X, RESOLUTION_Y)
