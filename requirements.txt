@@ -5,3 +5,4 @@ mediapipe>=0.8.9.1
 pyrealsense2
 torch==1.13.0
 tqdm == 4.64.1
+tensorboard == 2.10.1

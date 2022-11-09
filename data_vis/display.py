@@ -7,7 +7,7 @@ from os import path
 
 
 def extract_keypoints_no_face(results):
-    width = 448
+    width = 640
     height = 480
 
     pose = np.array([[res.x / width, res.y / height] for res in results.pose_landmarks.landmark]).flatten(

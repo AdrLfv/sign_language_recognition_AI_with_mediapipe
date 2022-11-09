@@ -1,7 +1,7 @@
 import numpy as np
 import onnxruntime
 import torch
-from ..training.LSTM import myLSTM
+from ..training.model import myLSTM
 
 
 def export_to_onnx(input_size, hidden_size, num_layers, output_size):
