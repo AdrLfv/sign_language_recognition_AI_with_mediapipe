@@ -198,7 +198,7 @@ nb_sequences = 30
 # Videos are going to be 30 frames in length
 sequence_length = 30
 
-make_dataset = False
+make_dataset = True
 make_train = True
 make_data_augmentation = True
 make_tuto = False
