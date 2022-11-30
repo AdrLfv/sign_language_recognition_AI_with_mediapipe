@@ -13,7 +13,6 @@ from .models_conversion.pthToOnnx import export_to_onnx
 from .models_conversion.test_onnx import TestOnnx
 
 from .data_vis.tuto import Tuto
-# from .data_vis.data_vis_nf import launch_vis_nf
 
 # Gives easier dataset managment by creating mini batches etc.
 from torch.utils.data import DataLoader

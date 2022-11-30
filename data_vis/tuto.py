@@ -151,7 +151,6 @@ class Tuto:
                 if i > 1:
                     for j, pair in enumerate(parts):
                         if j < 7 or j > 14:
-                            print(body_pose[pair[0]])
                             image = cv2.line(
                                 image,
                                 body_pose[pair[0]],
