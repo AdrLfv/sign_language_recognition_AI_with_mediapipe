@@ -203,8 +203,8 @@ convert_files = False
 make_data_augmentation = False
 make_tuto = True
 
-if(make_dataset):
-    make_train = True
+# if(make_dataset):
+#     make_train = True
 
 # dataset making : (ajouter des actions dans le actionsToAdd pour créer leur dataset)
 # actionsToAdd = np.array(["empty", "nothing"])  #
@@ -269,12 +269,7 @@ else:
                 print("Unable to convert to onnx")
 
 if make_tuto:
-    # if(weights_type == "pth"):
-    #     myTest = Test(model, len(actions))
-    # if(weights_type == "onnx"):
-    #     myTest = TestOnnx(len(actions))
     myTuto = Tuto(actions, RESOLUTION_X, RESOLUTION_Y, DATA_PATH)
     for action in actions:
         if (action != "nothing" and action != "empty"):
             myTuto.launch_tuto(action)
-            # myTest.launch_test(actions, action, SOURCE, RESOLUTION_X, RESOLUTION_Y)

@@ -159,27 +159,27 @@ class Tuto:
                                 self.thickness,
                             )
 
-        if len(left_hand_pose) >= 0:
-            for i, parts in enumerate(self.hand_junctions):
-                for pair in parts:
-                    image = cv2.line(
-                        image,
-                        left_hand_pose[pair[0]],
-                        left_hand_pose[pair[1]],
-                        self.color,
-                        self.thickness,
-                    )
+        # if len(left_hand_pose) >= 0:
+        #     for i, parts in enumerate(self.hand_junctions):
+        #         for pair in parts:
+        #             image = cv2.line(
+        #                 image,
+        #                 left_hand_pose[pair[0]],
+        #                 left_hand_pose[pair[1]],
+        #                 self.color,
+        #                 self.thickness,
+        #             )
 
-        if len(right_hand_pose) >= 0:
-            for i, parts in enumerate(self.hand_junctions):
-                for pair in parts:
-                    image = cv2.line(
-                        image,
-                        right_hand_pose[pair[0]],
-                        right_hand_pose[pair[1]],
-                        self.color,
-                        self.thickness,
-                    )
+        # if len(right_hand_pose) >= 0:
+        #     for i, parts in enumerate(self.hand_junctions):
+        #         for pair in parts:
+        #             image = cv2.line(
+        #                 image,
+        #                 right_hand_pose[pair[0]],
+        #                 right_hand_pose[pair[1]],
+        #                 self.color,
+        #                 self.thickness,
+        #             )
 
         # if len(self.face_pose) >= 0:
         #     # print(len(self.face_pose))
@@ -196,7 +196,7 @@ class Tuto:
 
         return image
 
-    def launch_tuto(self,action):
+    def launch_tuto(self, action):
         # Actions that we try to detect
         sequence_length = 30
         sequence = []
@@ -210,7 +210,25 @@ class Tuto:
             res = json.load(dataPath)
             sequence.append(res)
 
-        # Conversion des données en coordonnees
+        # frame = sequence[0]
+        # data = {}
+        # pose_landmarks = [[int(frame[i]), int(frame[i+1])]
+        #     for i, _ in enumerate(frame[0:33*2]) if i % 2 == 0]
+
+        # left_hand_landmarks = [[int(frame[i]), int(frame[i+1])]
+        #     for i, _ in enumerate(frame[33*2: 33*2+21*2]) if i % 2 == 0]
+                                
+        # right_hand_landmarks = [[int(frame[i]), int(
+        #     frame[i+1])] for i, _ in enumerate(frame[33*2+21*2:]) if i % 2 == 0]
+        
+        # data["body"] = pose_landmarks
+        # data["left_hand"] = left_hand_landmarks
+        # data["right_hand"] = right_hand_landmarks
+
+        # image = self.draw(image, data)
+        # cv2.imshow("My window", image)
+        # cv2.waitKey(5000) #millisecondes entre chaque frame
+
         for frame in sequence:
             data = {}
             pose_landmarks = [[int(frame[i]), int(frame[i+1])]
