@@ -4,7 +4,13 @@ import numpy as np
 import mediapipe as mp
 import json
 from os import path
+from json import JSONEncoder
 
+class NumpyArrayEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)
 
 def extract_keypoints_no_face(results):
     width = 640
@@ -33,12 +39,6 @@ def extract_keypoints(results):
     return np.concatenate([pose, face, lh, rh])
 
 def draw_styled_landmarks(image, results):
-        # Draw face connections
-        # mp_drawing.draw_landmarks(image, results.face_landmarks, mp_holistic.FACEMESH_CONTOURS,
-        #                          mp_drawing.DrawingSpec(color=(80,110,10), thickness=1, circle_radius=1),
-        #                          mp_drawing.DrawingSpec(color=(80,256,121), thickness=1, circle_radius=1)
-        #                          )
-        # Draw pose connections
         mp_holistic = mp.solutions.holistic
         mp_drawing = mp.solutions.drawing_utils  # Drawing utilities
         mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_holistic.POSE_CONNECTIONS,
@@ -63,14 +63,6 @@ def draw_styled_landmarks(image, results):
                                 )
 
 def mediapipe_detection(frame, mp_model):
-    # # COLOR CONVERSION BGR 2 RGB
-    # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    # image.flags.writeable = False                  # Image is no longer writeable
-    # results = model.process(image)                 # Make prediction
-    # image.flags.writeable = True                   # Image is now writeable
-    # image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)  # COLOR COVERSION RGB 2 BGR
-    # return image, results
-
     image = frame.copy()
     window = 0.7
 

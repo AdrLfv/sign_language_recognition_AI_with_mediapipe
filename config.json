@@ -12,7 +12,7 @@
         "number": 2
     },
     "applications": {
-        "startup": ["menu", "hands", "body", "face"],
+        "startup": ["menu", "hands", "body", "face", "slr"],
         "disabled": ["sign_training", "sign_language","bounce", "raw_hands", "show_ping", "score_player", "show_frequency"]
     },
     "microphone": {

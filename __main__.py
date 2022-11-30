@@ -13,6 +13,7 @@ from .models_conversion.pthToOnnx import export_to_onnx
 from .models_conversion.test_onnx import TestOnnx
 
 from .data_vis.tuto import Tuto
+# from .data_vis.data_vis_nf import launch_vis_nf
 
 # Gives easier dataset managment by creating mini batches etc.
 from torch.utils.data import DataLoader
@@ -28,14 +29,14 @@ import torch.nn.functional as F
 writer = SummaryWriter('runs/fashion_mnist_experiment_1')
 
 
-def launch_LSTM(output_size, make_train, weights_type, make_data_augmentation, hidden_size,num_layers):
+def launch_LSTM(output_size, make_train, make_data_augmentation, hidden_size,num_layers):
     # Set device cuda for GPU if it's available otherwise run on the CPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     learning_rate = 0.001  # how much to update models parameters at each batch/epoch
     batch_size = 32  # number of data samples propagated through the network before the parameters are updated
     NUM_WORKERS = 4
-    num_epochs = 100  # number times to iterate over the dataset
+    num_epochs = 10  # number times to iterate over the dataset
     DECAY = 1e-4
 
     # on crée des instances de preprocess en leur donnant le chemin d'accès ainsi que le nombre de séquences dans chaque dossier
@@ -128,18 +129,18 @@ def train_loop(train_loader, model, criterion, optimizer, epoch):
             optimizer.step()
             total_loss += loss.item() / len(train_loader)
 
-            if i % 1000 == 999:
-                writer.add_scalar('training loss',
-                    running_loss / 1000,
-                    epoch * len(train_loader) + i)
+            # if i % 1000 == 999:
+            #     writer.add_scalar('training loss',
+            #         running_loss / 1000,
+            #         epoch * len(train_loader) + i)
 
-                # ...log a Matplotlib Figure showing the model's predictions on a
-                # random mini-batch
-                writer.add_figure('predictions vs. actuals',
-                    plot_classes_preds(model, frame, targets),
-                    global_step=epoch * len(train_loader) + i)
-                running_loss = 0.0
-                pbar.set_postfix(loss=total_loss)
+            #     # ...log a Matplotlib Figure showing the model's predictions on a
+            #     # random mini-batch
+            #     writer.add_figure('predictions vs. actuals',
+            #         plot_classes_preds(model, frame, targets),
+            #         global_step=epoch * len(train_loader) + i)
+            #     running_loss = 0.0
+            #     pbar.set_postfix(loss=total_loss)
     # Check accuracy on training & test to see how good our model
 
 
@@ -185,30 +186,30 @@ def train_launch(model, output_size, learning_rate, DECAY, num_epochs, train_loa
     
     return model
 
-
 # on crée des dossiers dans lequels stocker les positions des points que l'on va enregistrer
-DATA_PATH = os.path.join('slr_mirror/dataset/MP_Data')
+DATA_PATH = os.path.join('slr_mirror/dataset/MP_Data1')
 
 RESOLUTION_Y = int(1920)  # Screen resolution in pixel
 RESOLUTION_X = int(1080)
 
 # Thirty videos worth of data
-nb_sequences = 30
+nb_sequences = 1
 
 # Videos are going to be 30 frames in length
 sequence_length = 30
 
-make_dataset = True
-make_train = True
-make_data_augmentation = True
-make_tuto = False
-weights_type = "onnx"  # "pth"
+make_dataset = False
+make_train = False
+convert_files = False
+make_data_augmentation = False
+make_tuto = True
 
 if(make_dataset):
     make_train = True
 
 # dataset making : (ajouter des actions dans le actionsToAdd pour créer leur dataset)
-actionsToAdd = np.array(["empty", "nothing", 'hello', 'thanks', 'iloveyou'])  #
+# actionsToAdd = np.array(["empty", "nothing"])  #
+actionsToAdd = np.array(['hello', 'thanks', 'iloveyou'])  #
 
 # Actions that we try to detect
 actions = np.array(["empty", "nothing", 'hello', 'thanks', 'iloveyou'])
@@ -251,29 +252,30 @@ if (make_dataset):
 
 if(make_train):
     print("Training")
-    launch_LSTM(output_size, make_train, weights_type, make_data_augmentation, hidden_size, num_layers)
+    launch_LSTM(output_size, make_train,  make_data_augmentation, hidden_size, num_layers)
 else:
-    try:
-        ort.InferenceSession("slr_mirror/outputs/slr_"+str(output_size)+".onnx", providers=[
-            'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
-        print("Found valid onnx model")
-    except Exception as e:
-        print("Onnx model not found")
-        print(e)
+    if(convert_files):
         try:
-            print("Converting pth to onnx")
-            export_to_onnx(output_size, hidden_size, num_layers, output_size)
+            ort.InferenceSession("slr_mirror/outputs/slr_"+str(output_size)+".onnx", providers=[
+                'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
+            print("Found valid onnx model")
         except Exception as e:
+            print("Onnx model not found")
             print(e)
-            print("Unable to convert to onnx")
+            try:
+                print("Converting pth to onnx")
+                export_to_onnx(output_size, hidden_size, num_layers, output_size)
+            except Exception as e:
+                print(e)
+                print("Unable to convert to onnx")
 
-# if make_tuto:
-#     if(weights_type == "pth"):
-#         myTest = Test(model, len(actions))
-#     if(weights_type == "onnx"):
-#         myTest = TestOnnx(len(actions))
-#     myTuto = Tuto(actions, RESOLUTION_X, RESOLUTION_Y)
-#     for action in actions:
-#         if (action != "nothing" and action != "empty"):
-#             myTuto.launch_tuto(action)
-#             myTest.launch_test(actions, action, SOURCE, RESOLUTION_X, RESOLUTION_Y)
+if make_tuto:
+    # if(weights_type == "pth"):
+    #     myTest = Test(model, len(actions))
+    # if(weights_type == "onnx"):
+    #     myTest = TestOnnx(len(actions))
+    myTuto = Tuto(actions, RESOLUTION_X, RESOLUTION_Y, DATA_PATH)
+    for action in actions:
+        if (action != "nothing" and action != "empty"):
+            myTuto.launch_tuto(action)
+            # myTest.launch_test(actions, action, SOURCE, RESOLUTION_X, RESOLUTION_Y)

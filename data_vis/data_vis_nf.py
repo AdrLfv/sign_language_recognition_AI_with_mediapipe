@@ -115,8 +115,6 @@ HAND_LINKS = [
 
 DATA_PATH = os.path.join('MP_Data/Train')
 
-
-
 class Data_vis_nf:
     """ 
     Data visualisation receiving data with removed depth and face keypoints. 
@@ -208,6 +206,7 @@ class Data_vis_nf:
 
         left_hands_landmarks = [[int(frame[33*2+i]*self.RESOLUTION_X), int(frame[33*2+i+1]*self.RESOLUTION_Y)]
                                 for i, _ in enumerate(frame[33*2: 33*2+21*2]) if i % 2 == 0]
+                                
         right_hands_landmarks = [[int(frame[33*2+21*2+i]*self.RESOLUTION_X), int(
             frame[33*2+21*2+i+1]*self.RESOLUTION_Y)] for i, _ in enumerate(frame[33*2+21*2:]) if i % 2 == 0]
         
@@ -217,7 +216,7 @@ class Data_vis_nf:
         data["face"] = face_landmarks
         return data
 
-    def launch_vis_nf(self,res, action):
+    def launch_vis_nf(self, res, action):
         """
         Lance la visualisation des inputs sans les points du visage et la profondeur
         """
