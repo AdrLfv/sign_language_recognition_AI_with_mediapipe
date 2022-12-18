@@ -2,7 +2,7 @@ import cv2
 import os
 import mediapipe as mp
 import numpy as np
-from ..data_vis.display import NumpyArrayEncoder, mediapipe_detection, extract_keypoints_no_face
+from ..data_vis.display import NumpyArrayEncoder, mediapipe_detection, extract_keypoints_no_face_mirror, extract_keypoints_no_face_raw
 import shutil
 import json
 import time
@@ -10,7 +10,7 @@ import time
 
 class CustomImageDataset():
     # class CustomImageDataset(Dataset):
-    def __init__(self, actionsToAdd, nb_sequences, sequence_length, DATA_PATH, RESOLUTION_X,RESOLUTION_Y, SOURCE):
+    def __init__(self, actionsToAdd, nb_sequences, sequence_length, DATA_PATH, RESOLUTION_X,RESOLUTION_Y, SOURCE, adapt_for_mirror = True):
         self.actionsToAdd = actionsToAdd
         self.nb_sequences = nb_sequences
         self.sequence_length = sequence_length
@@ -20,6 +20,7 @@ class CustomImageDataset():
         self.RESOLUTION_X = RESOLUTION_X
         self.RESOLUTION_Y = RESOLUTION_Y
         self.cap = SOURCE
+        self.adapt_for_mirror = adapt_for_mirror
         # self.cap = IntelCamera()
         print('dataset init')
 
@@ -94,8 +95,11 @@ class CustomImageDataset():
 
                         if frame_num<0:
                             continue
-                        keypoints = extract_keypoints_no_face(results)
-                        
+                        if (self.adapt_for_mirror):
+                            keypoints = extract_keypoints_no_face_mirror(results)
+                        else :
+                            keypoints = extract_keypoints_no_face_raw(results)
+
                         if(sequence<self.nb_sequences*80/100):
                             npy_path = os.path.join(
                             self.DATA_PATH_TRAIN, action, str(sequence), str(frame_num))

@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import mediapipe as mp
 import onnxruntime as ort
-from ..data_vis.display import draw_styled_landmarks, mediapipe_detection, extract_keypoints_no_face, prob_viz
+from ..data_vis.display import draw_styled_landmarks, mediapipe_detection, extract_keypoints_no_face_mirror, prob_viz
 import time
 
 
@@ -80,10 +80,8 @@ class TestOnnx():
                 # TEST DU MODELE
 
                 # Creation d'une séquence de frames
-                keypoints = extract_keypoints_no_face(results)
+                keypoints = extract_keypoints_no_face_mirror(results)
                 sequence.append(keypoints)
-
-                
 
                 sequence = sequence[-30:]
                 if len(sequence) == 30:

@@ -1,0 +1,14 @@
+{
+    "python.languageServer": "Pylance",
+    "python.linting.pylintEnabled": false,
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingModuleSource": "none"
+    },
+    "python.analysis.extraPaths": [
+        "/home/adrlfv/.vscode/extensions/ms-python.devicesimulatorexpress-2020.0.36321/out",
+        "/home/adrlfv/.vscode/extensions/joedevivo.vscode-circuitpython-0.1.19-linux-x64/stubs",
+        "/home/adrlfv/.config/Code/User/globalStorage/joedevivo.vscode-circuitpython/bundle/20221218/adafruit-circuitpython-bundle-py-20221218/lib",
+        "/home/adrlfv/.vscode/extensions/ms-python.devicesimulatorexpress-2020.0.36321/out/base_circuitpython"
+    ],
+    "circuitpython.board.version": null
+}

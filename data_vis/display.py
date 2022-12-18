@@ -12,7 +12,7 @@ class NumpyArrayEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-def extract_keypoints_no_face(results):
+def extract_keypoints_no_face_mirror(results):
     width = 640
     height = 480
 
@@ -25,6 +25,15 @@ def extract_keypoints_no_face(results):
     #print("Length lh :",lh.shape)
     rh = np.array([[res.x * width, res.y * height] for res in results.right_hand_landmarks.landmark]).flatten(
     ) if results.right_hand_landmarks else np.zeros(21*2)
+    return np.concatenate([pose, lh, rh])
+
+def extract_keypoints_no_face_raw(results):
+    pose = np.array([[res.x, res.y, res.z] for res in results.pose_landmarks.landmark]).flatten(
+    ) if results.pose_landmarks else np.zeros(33*3)
+    lh = np.array([[res.x, res.y, res.z] for res in results.left_hand_landmarks.landmark]).flatten(
+    ) if results.left_hand_landmarks else np.zeros(21*3)
+    rh = np.array([[res.x, res.y, res.z] for res in results.right_hand_landmarks.landmark]).flatten(
+    ) if results.right_hand_landmarks else np.zeros(21*3)
     return np.concatenate([pose, lh, rh])
 
 def extract_keypoints(results):

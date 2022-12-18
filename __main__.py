@@ -10,7 +10,6 @@ from .training.model import myLSTM
 from .training.preprocess import Preprocess
 
 from .models_conversion.pthToOnnx import export_to_onnx
-from .models_conversion.test_onnx import TestOnnx
 
 from .data_vis.tuto import Tuto
 
@@ -197,11 +196,12 @@ nb_sequences = 1
 # Videos are going to be 30 frames in length
 sequence_length = 30
 
-make_dataset = False
+make_dataset = True
 make_train = False
 convert_files = False
 make_data_augmentation = False
-make_tuto = True
+make_tuto = False
+adapt_for_mirror = False
 
 # if(make_dataset):
 #     make_train = True
@@ -245,7 +245,7 @@ else:
     SOURCE = StandardCamera(1920, 1080, 0)
 
 if (make_dataset):
-    CustomImageDataset(actionsToAdd, nb_sequences, sequence_length, DATA_PATH, RESOLUTION_X, RESOLUTION_Y, SOURCE).__getitem__()
+    CustomImageDataset(actionsToAdd, nb_sequences, sequence_length, DATA_PATH, RESOLUTION_X, RESOLUTION_Y, SOURCE, adapt_for_mirror).__getitem__()
 
 #myTestOnnx = TestOnnx()
 
