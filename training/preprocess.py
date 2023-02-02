@@ -18,7 +18,6 @@ def remove_points(results):
     # left hand
     for i, _ in enumerate(frame[33*4+468*3: 33*4+468*3+21*3]):
         if i % 3 == 0:
-            print(frame[33*4+468*3+i])
             window.append(frame[33*4+468*3+i])
             window.append(frame[33*4+468*3+i+1])
 

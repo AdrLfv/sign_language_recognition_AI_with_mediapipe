@@ -34,7 +34,7 @@ def launch_LSTM(output_size, make_train, make_data_augmentation, hidden_size,num
     learning_rate = 0.001  # how much to update models parameters at each batch/epoch
     batch_size = 32  # number of data samples propagated through the network before the parameters are updated
     NUM_WORKERS = 4
-    num_epochs = 10  # number times to iterate over the dataset
+    num_epochs = 300  # number times to iterate over the dataset
     DECAY = 1e-4
 
     # on crée des instances de preprocess en leur donnant le chemin d'accès ainsi que le nombre de séquences dans chaque dossier
@@ -185,34 +185,59 @@ def train_launch(model, output_size, learning_rate, DECAY, num_epochs, train_loa
     return model
 
 # on crée des dossiers dans lequels stocker les positions des points que l'on va enregistrer
-DATA_PATH = os.path.join('slr_mirror/dataset/MP_Data1')
+DATA_PATH = os.path.join('slr_mirror/dataset/MP_Data')
 
 RESOLUTION_Y = int(1920)  # Screen resolution in pixel
 RESOLUTION_X = int(1080)
 
 # Thirty videos worth of data
-nb_sequences = 1
+nb_sequences = 30
 
 # Videos are going to be 30 frames in length
 sequence_length = 30
 
-make_dataset = True
-make_train = False
-convert_files = False
-make_data_augmentation = False
+#! ATTENTION les données dans actionsToAdd sont écrasees avant d'être enregistrées
+# The user will have to make the dataset for the actions in "actionsToAdd"
+make_dataset = False
+# The program will launch the train
+make_train = True
+# The program will convert the weights to pth
+convert_files = True
+# The program will make data augmentation
+make_data_augmentation = True
+
+#* sans data augmentation : avec 200 epochs : acc on train = 70.83 and acc on est = 45.83
+
+# The program will make a data visualisation of the recording
 make_tuto = False
-adapt_for_mirror = False
+# The program will automatically calibrate the coordinates for the mirror
+adapt_for_mirror = True
 
 # if(make_dataset):
 #     make_train = True
 
 # dataset making : (ajouter des actions dans le actionsToAdd pour créer leur dataset)
-# actionsToAdd = np.array(["empty", "nothing"])  #
-actionsToAdd = np.array(['hello', 'thanks', 'iloveyou'])  #
+actionsToAdd = np.array([])
 
 # Actions that we try to detect
-actions = np.array(["empty", "nothing", 'hello', 'thanks', 'iloveyou'])
-# , "nothing", 'hello', 'thanks', 'iloveyou', "what's up", "hey", "my", "name", "nice","to meet you"
+actions = np.array([
+    "nothing",
+    "empty",
+    "ok",
+    "yes",
+    "no",
+    "left",
+    "right",
+    "house",
+    "store",
+    "hello",
+    "goodbye",
+    "television",
+    "leave",
+    "eat",
+    "apple",
+    "peach"])
+# "empty", "nothing", 'hello', 'thanks', 'iloveyou', "what's up", "hey", "my", "name", "nice","to meet you", "ok", "left", "right"
 
 output_size = len(actions)
 hidden_size = 128
