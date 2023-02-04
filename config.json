@@ -8,20 +8,36 @@
         "orientation": "horizontal",
         "angle": 17,
         "x_offset": -230,
-        "y_offset": 100,
-        "number": 2
+        "y_offset": 100
     },
-    "applications": {
-        "startup": ["menu", "hands", "body", "face", "slr"],
-        "disabled": ["sign_training", "sign_language","bounce", "raw_hands", "show_ping", "score_player", "show_frequency"]
-    },
-    "microphone": {
-        "number": 6
-    },
-    "screen": {
-        "screen_width": 392.85,
-        "screen_height": 698.4,
-        "width": 1080,
-        "height": 1920
+    "model_params": {
+        "actions": [
+            "nothing",
+            "empty",
+            "ok",
+            "yes",
+            "no",
+            "left",
+            "right",
+            "house",
+            "store",
+            "hello",
+            "goodbye",
+            "television",
+            "leave",
+            "eat",
+            "apple",
+            "peach"
+        ],
+        "actions_to_add": ["test"],
+        "adapt_for_mirror" :true,
+        "convert_files" : true,
+        "make_data_augmentation" : true,
+        "make_dataset" : true,
+        "make_train" : true,
+        "make_tuto" : false,
+        "nb_epochs": 5,
+        "nb_sequences" : 30,
+        "sequence_length" : 30
     }
 }

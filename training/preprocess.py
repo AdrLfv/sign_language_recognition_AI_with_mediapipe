@@ -4,7 +4,6 @@ import torch
 import numpy as np
 import os
 import json
-from ..data_vis.display import NumpyArrayEncoder
 
 def remove_points(results):
     window = []
@@ -30,12 +29,13 @@ def remove_points(results):
     return window
 
 class Preprocess():
-    def __init__(self, actions, DATA_PATH: str, sequence_length: int, data_augmentation: bool):
+    def __init__(self, actions, DATA_PATH: str, sequence_length: int, data_augmentation: bool, device):
 
         self.actions = actions
         self.DATA_PATH = DATA_PATH
         self.data_augmentation = data_augmentation
         self.sequence_length = sequence_length
+        self.device = device
         seq_nb_multiplier = 1
         self.nb_local_sequences = len(os.listdir(os.path.join(self.DATA_PATH, self.actions[0])))
         self.nb_processed_sequences = self.nb_local_sequences*seq_nb_multiplier if data_augmentation else self.nb_local_sequences

@@ -1,30 +1,59 @@
 import cv2
 import os
+from os import path
 import mediapipe as mp
 import numpy as np
-from ..data_vis.display import NumpyArrayEncoder, mediapipe_detection, extract_keypoints_no_face_mirror, extract_keypoints_no_face_raw
+from data_vis.display import NumpyArrayEncoder, mediapipe_detection, extract_keypoints_no_face_mirror, extract_keypoints_no_face_raw
 import shutil
 import json
-import time
+from drivers.video import IntelCamera, StandardCamera
 
 
 class CustomImageDataset():
     # class CustomImageDataset(Dataset):
-    def __init__(self, actionsToAdd, nb_sequences, sequence_length, DATA_PATH, RESOLUTION_X,RESOLUTION_Y, SOURCE, adapt_for_mirror = True):
-        self.actionsToAdd = actionsToAdd
-        self.nb_sequences = nb_sequences
+    def __init__(self, sequence_length, DIR_PATH, RESOLUTION_X,RESOLUTION_Y = True):        
         self.sequence_length = sequence_length
-        self.DATA_PATH_TRAIN =DATA_PATH+"/Train/"
-        self.DATA_PATH_VALID =DATA_PATH+"/Valid/"
-        self.DATA_PATH_TEST =DATA_PATH+"/Test/"
+        self.DATA_PATH_TRAIN =path.join(DIR_PATH+'/dataset/MP_Data/Train/')
+        self.DATA_PATH_VALID =path.join(DIR_PATH+'/dataset/MP_Data/Valid/')
+        self.DATA_PATH_TEST =path.join(DIR_PATH+'/dataset/MP_Data/Test/')
+
         self.RESOLUTION_X = RESOLUTION_X
         self.RESOLUTION_Y = RESOLUTION_Y
-        self.cap = SOURCE
-        self.adapt_for_mirror = adapt_for_mirror
-        # self.cap = IntelCamera()
-        print('dataset init')
 
-        for action in self.actionsToAdd:
+        if os.path.exists(path.join(DIR_PATH, 'config.json')):
+            with open(path.join(DIR_PATH, "config.json"), "r") as f:
+                config = json.load(f)
+                if (
+                    "type" in config["camera"]
+                    and "width" in config["camera"]
+                    and "height" in config["camera"]
+                ):
+                    if config["camera"]["type"] == "standard":
+                        self.cap = StandardCamera(
+                            config["camera"]["width"], config["camera"]["height"], config["camera"]["number"]
+                        ) if "number" in config["camera"] else StandardCamera(
+                            config["camera"]["width"], config["camera"]["height"]
+                        )
+                    elif config["camera"]["type"] == "intel":
+
+                        self.cap = IntelCamera(
+                            config["camera"]["width"], config["camera"]["height"], config["camera"]["number"]
+                        ) if "number" in config["camera"] else IntelCamera(
+                            config["camera"]["width"], config["camera"]["height"]
+                        )
+                else:
+                    self.cap = StandardCamera(1920, 1080, 0)
+
+                if (
+                    "actions_to_add" in config["model_params"] 
+                    and "nb_sequences" in config["model_params"] 
+                    and "adapt_for_mirror" in config["model_params"]
+                    ):
+                    self.actions_to_add = np.array(config["model_params"]["actions_to_add"])
+                    self.nb_sequences = config["model_params"]["nb_sequences"]
+                    self.adapt_for_mirror = config["model_params"]["adapt_for_mirror"]
+
+        for action in self.actions_to_add:
             if(os.path.exists(self.DATA_PATH_TRAIN + action)):
                 shutil.rmtree(os.path.join(
                     self.DATA_PATH_TRAIN, action))
@@ -42,10 +71,10 @@ class CustomImageDataset():
             os.makedirs(os.path.join(
                 self.DATA_PATH_TEST, action))
 
-    def __len__(self): return len(self.actionsToAdd)*len(self.nb_sequences)
+    def __len__(self): return len(self.actions_to_add)*len(self.nb_sequences)
 
     def __getitem__(self):
-        for action in self.actionsToAdd:
+        for action in self.actions_to_add:
             for sequence in range(self.nb_sequences):
                 try:
                     if(sequence<self.nb_sequences*80/100):
@@ -69,7 +98,7 @@ class CustomImageDataset():
         model_complexity=0,
         refine_face_landmarks = True) as holistic:
         
-            for action in self.actionsToAdd:
+            for action in self.actions_to_add:
                 for sequence in range(self.nb_sequences):
                     
                     image = np.zeros((1920,1080,3), np.uint8)
