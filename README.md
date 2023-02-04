@@ -1,4 +1,4 @@
-# Sign Language Training module with Artificial Intelligence recognition
+# American Sign Language Recognition with Pytorch
 
 ## Description
 
