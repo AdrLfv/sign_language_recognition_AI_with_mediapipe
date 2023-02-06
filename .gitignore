@@ -1,4 +1,3 @@
 __pycache__/
-logs
-
-# dataset/MP_Data/
+.vscode/
+runs/

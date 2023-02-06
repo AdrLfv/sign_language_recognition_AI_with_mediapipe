@@ -44,104 +44,124 @@ class CustomImageDataset():
                 else:
                     self.cap = StandardCamera(1920, 1080, 0)
 
-                if (
-                    "actions_to_add" in config["model_params"] 
-                    and "nb_sequences" in config["model_params"] 
+                if ("nb_sequences" in config["model_params"] 
                     and "adapt_for_mirror" in config["model_params"]
+                    and "erase_dataset" in config["model_params"]
+                    and "actions" in config["model_params"]
                     ):
-                    self.actions_to_add = np.array(config["model_params"]["actions_to_add"])
+                    self.actions = np.array(config["model_params"]["actions"])
                     self.nb_sequences = config["model_params"]["nb_sequences"]
                     self.adapt_for_mirror = config["model_params"]["adapt_for_mirror"]
+                    self.erase_dataset = config["model_params"]["erase_dataset"]
 
-        for action in self.actions_to_add:
-            if(os.path.exists(self.DATA_PATH_TRAIN + action)):
-                shutil.rmtree(os.path.join(
-                    self.DATA_PATH_TRAIN, action))
-            if(os.path.exists(self.DATA_PATH_VALID + action)):
-                shutil.rmtree(os.path.join(
-                    self.DATA_PATH_VALID, action), ignore_errors=False, onerror=None)
-            if(os.path.exists(self.DATA_PATH_TEST + action)):
-                shutil.rmtree(os.path.join(
-                    self.DATA_PATH_TEST, action), ignore_errors=False, onerror=None)
+        
+        for action in self.actions:
+            if(self.erase_dataset):
+                if(os.path.exists(self.DATA_PATH_TRAIN + action)):
+                    shutil.rmtree(os.path.join(
+                        self.DATA_PATH_TRAIN, action))
+                if(os.path.exists(self.DATA_PATH_VALID + action)):
+                    shutil.rmtree(os.path.join(
+                        self.DATA_PATH_VALID, action), ignore_errors=False, onerror=None)
+                if(os.path.exists(self.DATA_PATH_TEST + action)):
+                    shutil.rmtree(os.path.join(
+                        self.DATA_PATH_TEST, action), ignore_errors=False, onerror=None)
 
-            os.makedirs(os.path.join(
-                self.DATA_PATH_TRAIN, action))
-            os.makedirs(os.path.join(
-                self.DATA_PATH_VALID, action))
-            os.makedirs(os.path.join(
-                self.DATA_PATH_TEST, action))
-
-    def __len__(self): return len(self.actions_to_add)*len(self.nb_sequences)
+    # def __len__(self): return len(self.actions)*len(self.nb_sequences)
 
     def __getitem__(self):
-        for action in self.actions_to_add:
-            for sequence in range(self.nb_sequences):
-                try:
-                    if(sequence<self.nb_sequences*80/100):
-                        os.makedirs(os.path.join(
-                            self.DATA_PATH_TRAIN, action, str(sequence)))
-                    elif(self.nb_sequences*80/100 <= sequence and sequence < self.nb_sequences*90/100):
-                        os.makedirs(os.path.join(
-                            self.DATA_PATH_VALID, action, str(int(sequence-self.nb_sequences*80/100))))
-                    else:
-                        os.makedirs(os.path.join(
-                            self.DATA_PATH_TEST, action, str(int(sequence-self.nb_sequences*90/100))))
-                except Exception as e:
-                    print(e)
-                    pass
-        
-        # Set mediapipe model
         mp_holistic = mp.solutions.holistic  # Holistic model
         with mp_holistic.Holistic(min_detection_confidence=0.5,
         min_tracking_confidence=0.5,
         smooth_landmarks=True,
         model_complexity=0,
         refine_face_landmarks = True) as holistic:
+            for action in self.actions:
+                # On compte le nombre de séquences déjà enregistrées pour chaque action
+                if(os.path.exists(os.path.join(self.DATA_PATH_TRAIN, action))):
+                    local_train_seq_nb = len(os.listdir(os.path.join(self.DATA_PATH_TRAIN, action)))
+                else:
+                    os.makedirs(os.path.join(
+                        self.DATA_PATH_TRAIN, action))
+                    local_train_seq_nb = 0
+
+                if(os.path.exists(os.path.join(self.DATA_PATH_VALID, action))):
+                    local_valid_seq_nb = len(os.listdir(os.path.join(self.DATA_PATH_VALID, action)))
+                else:
+                    os.makedirs(os.path.join(
+                        self.DATA_PATH_VALID, action))
+                    local_valid_seq_nb = 0
+
+                if(os.path.exists(os.path.join(self.DATA_PATH_TEST, action))):
+                    local_test_seq_nb = len(os.listdir(os.path.join(self.DATA_PATH_TEST, action)))
+                else:
+                    os.makedirs(os.path.join(
+                        self.DATA_PATH_TEST, action))
+                    local_test_seq_nb = 0
+
+                # Si on a déjà assez de séquences, on passe à l'action suivante
+                if (local_train_seq_nb + local_valid_seq_nb + local_test_seq_nb) >= self.nb_sequences:
+                    continue
+
+                # On enregistre les séquences
+                for seq_ind in range(local_train_seq_nb, int(self.nb_sequences*80/100)):
+                    self.collect_sequence(action, seq_ind, self.DATA_PATH_TRAIN, holistic)
+
+                for seq_ind in range(local_valid_seq_nb, int(self.nb_sequences*10/100)):
+                    self.collect_sequence(action, seq_ind, self.DATA_PATH_VALID, holistic)
+
+                for seq_ind in range(local_test_seq_nb, int(self.nb_sequences*10/100)):
+                    self.collect_sequence(action, seq_ind, self.DATA_PATH_TEST, holistic)
+
+                cv2.destroyAllWindows()
+
+    def collect_sequence(self, action, seq_ind, PATH, holistic):
+        try:
+            # On créee les dossiers pour les séquences
+            os.makedirs(os.path.join(
+                PATH, action, str(seq_ind)))
+        except Exception as e:
+            raise(e)
+            pass
         
-            for action in self.actions_to_add:
-                for sequence in range(self.nb_sequences):
-                    
-                    image = np.zeros((1920,1080,3), np.uint8)
-                    cv2.putText(image, 'STARTING COLLECTION', (120, 200),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4, cv2.LINE_AA)
-                    cv2.putText(image, 'Collecting frames for {}'.format(action), (15, 40),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 1, cv2.LINE_AA)
-                    cv2.putText(image, 'Video Number {}'.format(sequence), (15, 80),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv2.LINE_AA)
-                    cv2.imshow('OpenCV Feed', image)
-                    cv2.waitKey(2000)
+        # On affiche un message pour indiquer que la collection commence
+        # image = np.zeros((640,480,3), np.uint8)
+        image = np.zeros((1920,1080,3), np.uint8)
+        cv2.putText(image, 'STARTING COLLECTION', (120, 200),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4, cv2.LINE_AA)
+        cv2.putText(image, 'Collecting frames for {}'.format(action), (15, 40),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 1, cv2.LINE_AA)
+        cv2.putText(image, 'Video Number {}'.format(seq_ind), (15, 80),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv2.LINE_AA)
+        cv2.imshow('OpenCV Feed', image)
+        cv2.waitKey(2000)
 
-                    for frame_num in range(-4, self.sequence_length):
-                        frame, _ = self.cap.next_frame()
-                        frame = cv2.flip(frame, 1)
-                        image, results = mediapipe_detection(frame, holistic)
+        for frame_num in range(-4, self.sequence_length):
+            if frame_num<0:
+                continue
+            
+            # Set mediapipe model
+            
+            frame, _ = self.cap.next_frame()
+            frame = cv2.flip(frame, 1)
+            image, results = mediapipe_detection(frame, holistic)
 
-                        cv2.putText(image, 'Collecting frames for {}'.format(action), (15, 40),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 1, cv2.LINE_AA)
-                        cv2.putText(image, 'Video Number {}'.format(sequence), (15, 80),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv2.LINE_AA)
-                        cv2.imshow('OpenCV Feed', image)
+            cv2.putText(image, '{}'.format(action), (15, 40),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 1, cv2.LINE_AA)
+            cv2.putText(image, 'Video Number {}'.format(seq_ind), (15, 80),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv2.LINE_AA)
+            cv2.imshow('OpenCV Feed', image)
+            
+            if (self.adapt_for_mirror):
+                keypoints = extract_keypoints_no_face_mirror(results)
+            else :
+                keypoints = extract_keypoints_no_face_raw(results)
 
-                        if frame_num<0:
-                            continue
-                        if (self.adapt_for_mirror):
-                            keypoints = extract_keypoints_no_face_mirror(results)
-                        else :
-                            keypoints = extract_keypoints_no_face_raw(results)
+            npy_path = os.path.join(
+                PATH, action, str(seq_ind), str(frame_num))
 
-                        if(sequence<self.nb_sequences*80/100):
-                            npy_path = os.path.join(
-                            self.DATA_PATH_TRAIN, action, str(sequence), str(frame_num))
-                        elif(self.nb_sequences*80/100 <= sequence and sequence < self.nb_sequences*90/100):
-                            npy_path = os.path.join(
-                            self.DATA_PATH_VALID, action, str(int(sequence-self.nb_sequences*80/100)), str(frame_num))
-                        else:
-                            npy_path = os.path.join(
-                            self.DATA_PATH_TEST, action, str(int(sequence-self.nb_sequences*90/100)), str(frame_num))
-                        with open(npy_path+".json", "w") as outfile:
-                            outfile.write(json.dumps(keypoints, cls=NumpyArrayEncoder))
+            with open(npy_path+".json", "w") as outfile:
+                outfile.write(json.dumps(keypoints, cls=NumpyArrayEncoder))
 
-                        if cv2.waitKey(10) & 0xFF == ord('q'):
-                            break   
-
-            cv2.destroyAllWindows()
+            if cv2.waitKey(10) & 0xFF == ord('q'):
+                break   

@@ -29,14 +29,15 @@
             "apple",
             "peach"
         ],
-        "actions_to_add": [],
         "adapt_for_mirror" :true,
         "convert_files" : true,
+        "erase_dataset" : false,
+        "erase_runs" : false,
         "make_data_augmentation" : true,
-        "make_dataset" : false,
+        "make_dataset" : true,
         "make_train" : true,
         "make_tuto" : false,
-        "nb_epochs": 140,
+        "nb_epochs": 100,
         "nb_sequences" : 30,
         "sequence_length" : 30
     }

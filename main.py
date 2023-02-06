@@ -16,7 +16,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm  # For nice progress bar!
 from training.model import myLSTM
 from training.preprocess import Preprocess
-
+import shutil
 
 def test_loop(loader, model, device):
     num_correct = 0
@@ -37,12 +37,6 @@ def test_loop(loader, model, device):
 
 def main():
     DIR_PATH = path.dirname(path.realpath(__file__))
-    file_ind = 1
-    #* on crée un writer pour enregistrer les données dans tensorboard
-    while(os.path.exists(path.join(DIR_PATH, 'runs/slr_lstm0_'+str(file_ind))) == True): file_ind += 1
-    writer = SummaryWriter(path.join(DIR_PATH, 'runs/slr_lstm0_'+str(file_ind)))
-
-    # on crée des dossiers dans lequels stocker les positions des points que l'on va enregistrer
     DATA_PATH = path.join(DIR_PATH, 'dataset/MP_Data')
 
     RESOLUTION_Y = int(1920)  # Screen resolution in pixel
@@ -60,8 +54,8 @@ def main():
                 and "sequence_length" in config["model_params"]
                 and "actions" in config["model_params"]
                 and "nb_epochs" in config["model_params"]
+                and "erase_runs" in config["model_params"]
             ):
-                #! ATTENTION les données dans actionsToAdd sont écrasees avant d'être enregistrées
                 # The user will have to make the dataset for the actions in "actionsToAdd"
                 make_dataset = config["model_params"]["make_dataset"]
                 # The program will launch the train
@@ -78,6 +72,15 @@ def main():
                 actions = np.array(config["model_params"]["actions"])
                 # "empty", "nothing", 'hello', 'thanks', 'iloveyou', "what's up", "hey", "my", "name", "nice","to meet you", "ok", "left", "right"
                 nb_epochs = config["model_params"]["nb_epochs"]
+                erase_runs = config["model_params"]["erase_runs"]
+
+    if (erase_runs):
+        for file in os.listdir(path.join(DIR_PATH, 'runs')):
+            shutil.rmtree(path.join(DIR_PATH, 'runs', file))
+
+    file_ind = 1
+    while(os.path.exists(path.join(DIR_PATH, 'runs/slr_lstm0_'+str(file_ind))) == True): file_ind += 1
+    writer = SummaryWriter(path.join(DIR_PATH, 'runs/slr_lstm0_'+str(file_ind)))
 
     output_size = len(actions)
     hidden_size = 128
@@ -182,7 +185,7 @@ def main():
 
         except Exception as e:
             raise e
-            print(e)
+            # print(e)
 
     else:
         if(convert_files):
@@ -197,8 +200,11 @@ def main():
                     print("Converting pth to onnx")
                     export_to_onnx(output_size, hidden_size, num_layers, output_size, device, DIR_PATH)
                 except Exception as e:
-                    print(e)
+                    raise(e)
                     print("Unable to convert to onnx")
+                
+                raise(e)
+
 
     if make_tuto:
         myTuto = Tuto(actions, RESOLUTION_X, RESOLUTION_Y, DATA_PATH)
