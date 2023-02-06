@@ -1,3 +1,7 @@
 __pycache__/
 .vscode/
 runs/
+.venv/
+runs/
+outputs/
+dataset/
