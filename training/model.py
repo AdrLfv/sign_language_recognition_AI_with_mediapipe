@@ -1,4 +1,4 @@
-from torch import nn  
+from torch import nn
 import torch.nn.functional as F
 import torch
 torch.cuda.empty_cache()
@@ -19,9 +19,14 @@ class myLSTM(nn.Module):
         else:
             self.layer = nn.Linear(hidden_size, output_size).to(device)
 
+        self.dropout = nn.Dropout(0.1).to(device)
+        self.batchnorm = nn.BatchNorm1d(2*hidden_size).to(device)
+        self.relu = nn.ReLU().to(device)
+        self.fc1 = nn.Linear(2*hidden_size, 2*hidden_size).to(device)
+
     def forward(self, input):
         # input = input.to(self.device)
-        
+
         # Set initial states
         if self.bidirectional:
             hidden_state = torch.zeros(
@@ -37,11 +42,26 @@ class myLSTM(nn.Module):
         # LSTM:
         output, (last_hidden_state, last_cell_state) = self.lstm(input)
         # output, (last_hidden_state, last_cell_state) = self.lstm(input, (hidden_state, cell_state))
-        
+
         # Reshape
         output = output[:, -1, :]
 
-        # FNN:
+        # Dropout:
+        output = self.dropout(output)
+
+        # Batchnorm:
+        output = self.batchnorm(output)
+
+        # Fully connected:
+        output = self.fc1(output)
+
+        # Relu:
+        output = self.relu(output)
+
+        # Batchnorm:
+        output = self.batchnorm(output)
+
+        # Last layer:
         output = self.layer(output)
 
         return output

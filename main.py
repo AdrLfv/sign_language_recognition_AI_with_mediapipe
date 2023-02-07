@@ -18,7 +18,7 @@ from training.model import myLSTM
 from training.preprocess import Preprocess
 import shutil
 
-def test_loop(loader, model, device):
+def test_loop(loader, model, device, writer, epoch, name):
     num_correct = 0
     num_samples = 0
     model.eval().to(device)
@@ -31,8 +31,9 @@ def test_loop(loader, model, device):
             _, predictions = scores.max(1)
             num_correct += (predictions == y).sum().item()
             num_samples += predictions.size(0)
-            
+
     model.train()
+    writer.add_scalar(f"{name} Accuracy", num_correct/num_samples, epoch)
     return num_correct/ num_samples
 
 def main():
@@ -67,7 +68,7 @@ def main():
                 # The program will make a data visualisation of the recording
                 make_tuto = config["model_params"]["make_tuto"]
                 # The program will automatically calibrate the coordinates for the mirror
-                
+
                 sequence_length = config["model_params"]["sequence_length"]
                 actions = np.array(config["model_params"]["actions"])
                 # "empty", "nothing", 'hello', 'thanks', 'iloveyou', "what's up", "hey", "my", "name", "nice","to meet you", "ok", "left", "right"
@@ -94,10 +95,10 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     if(make_train):
-        learning_rate = 0.001  # how much to update models parameters at each batch/epoch
-        batch_size = 32  # number of data samples propagated through the network before the parameters are updated
+        learning_rate = 1e-4  # how much to update models parameters at each batch/epoch
+        batch_size = 16  # number of data samples propagated through the network before the parameters are updated
         # NUM_WORKERS = 4
-        NUM_WORKERS = 4
+        NUM_WORKERS = 6
         DECAY = 1e-4
 
         # on crée des instances de preprocess en leur donnant le chemin d'accès ainsi que le nombre de séquences dans chaque dossier
@@ -123,16 +124,19 @@ def main():
 
         # Initialize network
         try:
+            # model path: path.join(DIR_PATH, '/outputs/slr_' + str(output_size) + '.pth')
             model = myLSTM(input_size, hidden_size,
                 num_layers, output_size, device)
-            
-            # Loss and optimizer
+            if os.path.exists(path.join(DIR_PATH, 'outputs/slr_' + str(output_size) + '.pth')):
+                model.load_state_dict(torch.load(path.join(DIR_PATH, 'outputs/slr_' + str(output_size) + '.pth')))
+                print("Model loaded")
+
             criterion = torch.nn.CrossEntropyLoss()
             optimizer = torch.optim.AdamW(
                 model.parameters(), lr=learning_rate, weight_decay=DECAY)
 
             frames, _ = next(iter(train_loader))
-            
+
             writer.add_graph(model, frames.to(device))
             writer.close()
 
@@ -165,23 +169,23 @@ def main():
                     running_train_acc = float(running_correct) / float(len(train_loader.dataset))
                         # if(i+1) % 10 == 0:
                     writer.add_scalar('Training loss', loss, epoch)
-                    writer.add_scalar('Training accuracy', running_train_acc, epoch)
+                    # writer.add_scalar('Training accuracy', running_train_acc, epoch)
 
                     running_loss = 0.0
                     running_correct = 0.0
-                        
+
                 print(
-                    f"Accuracy on training set: {test_loop(train_loader, model, device)*100:.2f}")
+                    f"Accuracy on training set: {test_loop(train_loader, model, device, writer, epoch, 'Training')*100:.2f}")
                 print(
-                    f"Accuracy on test set: {test_loop(test_loader, model, device)*100:.2f}")
+                    f"Accuracy on test set: {test_loop(test_loader, model, device, writer, epoch, 'Testing')*100:.2f}")
             print("Done!")
 
-            print(
-                f"Accuracy on valid set: {test_loop(valid_loader, model, device)*100:.2f}")
+            # print(
+            #     f"Accuracy on valid set: {test_loop(valid_loader, model, device)*100:.2f}")
 
-            torch.save(model.state_dict(), path.join(DIR_PATH, 'outputs/slr_'+str(output_size)+'.pth'))
-            
-            export_to_onnx(input_size, hidden_size, num_layers, output_size, device, DIR_PATH)
+            # torch.save(model.state_dict(), path.join(DIR_PATH, 'outputs/slr_'+str(output_size)+'.pth'))
+
+            # export_to_onnx(input_size, hidden_size, num_layers, output_size, device, DIR_PATH)
 
         except Exception as e:
             raise e
@@ -202,7 +206,7 @@ def main():
                 except Exception as e:
                     raise(e)
                     print("Unable to convert to onnx")
-                
+
                 raise(e)
 
 
