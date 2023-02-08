@@ -6,6 +6,7 @@ from os import path
 
 
 def export_to_onnx(input_size, hidden_size, num_layers, output_size, device, DIR_PATH):
+    # print(input_size, hidden_size, num_layers, output_size)
     """ Exports the pytorch model to onnx """
     model = myLSTM(input_size, hidden_size, num_layers, output_size, device)
 

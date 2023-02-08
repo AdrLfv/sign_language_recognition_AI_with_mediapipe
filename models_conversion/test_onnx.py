@@ -56,21 +56,16 @@ class TestOnnx():
                 self.timeloop_start = time.time()
                 print("TIMELOOP", timeloop)
 
-                
-
                 # RECUPERATION DES COORDONNEES
                 # Read feed
                 frame, depth = cap.next_frame()
-                #frame= cv2.resize(frame,(RESOLUTION_X,RESOLUTION_Y))
 
                 # Make detections
                 image, results = mediapipe_detection(frame, holistic)
-                # print(results)
                 image = cv2.resize(image, (RESOLUTION_Y, RESOLUTION_X))
 
                 # Draw landmarks
                 draw_styled_landmarks(image, results)
-                #image = cv2.flip(image, 1)
                 window = 0.5
                 min_width, max_width = int(
                     (0.5-window/2)*RESOLUTION_Y), int((0.5+window/2)*RESOLUTION_Y)

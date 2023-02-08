@@ -52,24 +52,15 @@ class Preprocess():
         ind_seq = idx_seq % self.nb_local_sequences
 
         window = []
-        # data_vis = Data_vis()
         
         for _, frame_num in enumerate(range(self.sequence_length)):
-            # res = np.load(os.path.join(self.DATA_PATH, self.actions[ind_action],
-            # str(ind_seq), "{}.npy".format(frame_num%self.sequence_length)), allow_pickle=True)
-            
             dataPath = open(os.path.join(self.DATA_PATH, self.actions[ind_action],
                 str(ind_seq), "{}.json".format(frame_num)))
             res = json.load(dataPath)
-            #if(i==0): data_vis.launch_vis(res)
-            # res = remove_points(res)
-            
             if (self.data_augmentation):
                 res = Data_augmentation(
                     res).__getitem__()
             window.append(res)
-            #if(i==0): data_vis_nf.launch_vis_nf(res,self.actions[ind_action])
-            # print("res shape",np.array(res).shape)
         
         self.X = np.array(window)
         self.y = ind_action
@@ -85,4 +76,3 @@ class Preprocess():
     def get_data_length(self):
         encodedNumpyData = open(os.path.join(self.DATA_PATH, self.actions[0], str(0), "{}.json".format(0)))
         return len(json.load(encodedNumpyData))
-        # return len(np.load(os.path.join(self.DATA_PATH, self.actions[0], str(0), "{}.npy".format(0)), allow_pickle=True))

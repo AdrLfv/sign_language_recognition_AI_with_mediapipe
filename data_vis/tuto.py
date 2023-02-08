@@ -97,11 +97,11 @@ class Tuto:
 
         self.DATA_PATH = DATA_PATH
 
-    def draw(self, image, data):
+    def draw(self, image, data, action):
         """ Draws the body on an opencv image """
         body_pose = data["body"]
-        left_hand_pose = data["left_hand"]
-        right_hand_pose = data["right_hand"]
+        # left_hand_pose = data["left_hand"]
+        # right_hand_pose = data["right_hand"]
         # face_pose = data["face"]
 
         # image = cv2.line(image, [200, 200], [200, 600], self.color, self.thickness)
@@ -140,7 +140,8 @@ class Tuto:
         #                 self.color,
         #                 self.thickness,
         #             )
-
+        cv2.putText(image, 'Action : {}'.format(action), (15, 40),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 1, cv2.LINE_AA)
         # if len(self.face_pose) >= 0:
         #     # print(len(self.face_pose))
         #     for i, parts in enumerate(self.face_junctions):
@@ -206,7 +207,7 @@ class Tuto:
             data["left_hand"] = left_hand_landmarks
             data["right_hand"] = right_hand_landmarks
 
-            image = self.draw(image, data)
+            image = self.draw(image, data, action)
             cv2.imshow("My window", image)
             key = cv2.waitKey(66) #millisecondes entre chaque frame
 

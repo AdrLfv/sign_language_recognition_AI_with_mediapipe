@@ -7,7 +7,7 @@ from data_vis.display import NumpyArrayEncoder, mediapipe_detection, extract_key
 import shutil
 import json
 from drivers.video import IntelCamera, StandardCamera
-
+import math
 
 class CustomImageDataset():
     # class CustomImageDataset(Dataset):
@@ -104,13 +104,13 @@ class CustomImageDataset():
                     continue
 
                 # On enregistre les séquences
-                for seq_ind in range(local_train_seq_nb, int(self.nb_sequences*80/100)):
+                for seq_ind in range(local_train_seq_nb, int(math.ceil(self.nb_sequences*80/100))):
                     self.collect_sequence(action, seq_ind, self.DATA_PATH_TRAIN, holistic)
 
-                for seq_ind in range(local_valid_seq_nb, int(self.nb_sequences*10/100)):
+                for seq_ind in range(local_valid_seq_nb, int(math.ceil(self.nb_sequences*10/100))):
                     self.collect_sequence(action, seq_ind, self.DATA_PATH_VALID, holistic)
 
-                for seq_ind in range(local_test_seq_nb, int(self.nb_sequences*10/100)):
+                for seq_ind in range(local_test_seq_nb, int(math.ceil(self.nb_sequences*10/100))):
                     self.collect_sequence(action, seq_ind, self.DATA_PATH_TEST, holistic)
 
                 cv2.destroyAllWindows()
@@ -122,11 +122,11 @@ class CustomImageDataset():
                 PATH, action, str(seq_ind)))
         except Exception as e:
             raise(e)
-            pass
         
         # On affiche un message pour indiquer que la collection commence
         # image = np.zeros((640,480,3), np.uint8)
-        image = np.zeros((1920,1080,3), np.uint8)
+        image = np.zeros((1920, 1080,3), np.uint8)
+
         cv2.putText(image, 'STARTING COLLECTION', (120, 200),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4, cv2.LINE_AA)
         cv2.putText(image, 'Collecting frames for {}'.format(action), (15, 40),
@@ -141,7 +141,6 @@ class CustomImageDataset():
                 continue
             
             # Set mediapipe model
-            
             frame, _ = self.cap.next_frame()
             frame = cv2.flip(frame, 1)
             image, results = mediapipe_detection(frame, holistic)
@@ -153,7 +152,7 @@ class CustomImageDataset():
             cv2.imshow('OpenCV Feed', image)
             
             if (self.adapt_for_mirror):
-                keypoints = extract_keypoints_no_face_mirror(results)
+                keypoints = extract_keypoints_no_face_mirror(results, image.shape[1], image.shape[0])
             else :
                 keypoints = extract_keypoints_no_face_raw(results)
 

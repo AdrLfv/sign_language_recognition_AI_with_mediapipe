@@ -9,7 +9,7 @@ first_boot:
 	
 set-up_tensorboard:
 	mkdir -p runs
-	tensorboard --logdir=runs
+	gnome-terminal -- sh -c "tensorboard --logdir=runs"
 	xdg-open http://localhost:6006
 
 install:

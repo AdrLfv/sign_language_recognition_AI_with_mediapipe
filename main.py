@@ -79,9 +79,7 @@ def main():
         for file in os.listdir(path.join(DIR_PATH, 'runs')):
             shutil.rmtree(path.join(DIR_PATH, 'runs', file))
 
-    file_ind = 1
-    while(os.path.exists(path.join(DIR_PATH, 'runs/slr_lstm0_'+str(file_ind))) == True): file_ind += 1
-    writer = SummaryWriter(path.join(DIR_PATH, 'runs/slr_lstm0_'+str(file_ind)))
+    
 
     output_size = len(actions)
     hidden_size = 128
@@ -124,6 +122,10 @@ def main():
 
         # Initialize network
         try:
+            file_ind = 1
+            while(os.path.exists(path.join(DIR_PATH, 'runs/slr_lstm0_'+str(file_ind))) == True): file_ind += 1
+            writer = SummaryWriter(path.join(DIR_PATH, 'runs/slr_lstm0_'+str(file_ind)))
+
             # model path: path.join(DIR_PATH, '/outputs/slr_' + str(output_size) + '.pth')
             model = myLSTM(input_size, hidden_size,
                 num_layers, output_size, device)
@@ -166,10 +168,7 @@ def main():
                         _, predicted = torch.max(outputs.data, 1)
                         running_correct += (predicted == targets).sum().item()
 
-                    running_train_acc = float(running_correct) / float(len(train_loader.dataset))
-                        # if(i+1) % 10 == 0:
                     writer.add_scalar('Training loss', loss, epoch)
-                    # writer.add_scalar('Training accuracy', running_train_acc, epoch)
 
                     running_loss = 0.0
                     running_correct = 0.0
@@ -180,34 +179,26 @@ def main():
                     f"Accuracy on test set: {test_loop(test_loader, model, device, writer, epoch, 'Testing')*100:.2f}")
             print("Done!")
 
-            # print(
-            #     f"Accuracy on valid set: {test_loop(valid_loader, model, device)*100:.2f}")
+            print(
+                f"Accuracy on valid set: {test_loop(valid_loader, model, device, writer, epoch, 'Valid')*100:.2f}")
 
-            # torch.save(model.state_dict(), path.join(DIR_PATH, 'outputs/slr_'+str(output_size)+'.pth'))
-
-            # export_to_onnx(input_size, hidden_size, num_layers, output_size, device, DIR_PATH)
+            torch.save(model.state_dict(), path.join(DIR_PATH, 'outputs/slr_'+str(output_size)+'.pth'))
 
         except Exception as e:
             raise e
             # print(e)
 
-    else:
-        if(convert_files):
-            try:
-                ort.InferenceSession(path.join(DIR_PATH, '/outputs/slr_' + str(output_size) + '.onnx'), providers=[
-                    'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
-                print("Found valid onnx model")
-            except Exception as e:
-                print("Onnx model not found")
-                print(e)
-                try:
-                    print("Converting pth to onnx")
-                    export_to_onnx(output_size, hidden_size, num_layers, output_size, device, DIR_PATH)
-                except Exception as e:
-                    raise(e)
-                    print("Unable to convert to onnx")
-
-                raise(e)
+    
+    if(convert_files):
+        try:
+            ort.InferenceSession(path.join(DIR_PATH, '/outputs/slr_' + str(output_size) + '.onnx'), providers=[
+                'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
+            print("Found valid onnx model")
+        except Exception as e:
+            print("Onnx model not found")
+            # print(e)
+            print("Converting pth to onnx")
+            export_to_onnx(input_size, hidden_size, num_layers, output_size, device, DIR_PATH)
 
 
     if make_tuto:
