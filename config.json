@@ -31,8 +31,7 @@
             "leave",
             "eat",
             "apple",
-            "peach",
-            "skip"
+            "peach"
         ],  
         "adapt_for_mirror" :true,
         "convert_files" : true,
@@ -40,10 +39,10 @@
         "erase_runs" : false,
         "make_data_augmentation" : true,
         "make_dataset" : true,
-        "make_train" : true,
+        "make_train" : false,
         "make_tuto" : false,
-        "nb_epochs": 100,
-        "nb_sequences" : 60,
+        "nb_epochs": 150,
+        "nb_sequences" : 30,
         "sequence_length" : 30
     }
 }

@@ -15,6 +15,7 @@ def export_to_onnx(input_size, hidden_size, num_layers, output_size, device, DIR
     model.load_state_dict(torch.load(WEIGHTS_PATH))
     model.eval()
     input = torch.randn(1, 30, input_size, requires_grad=True, device=device)
+    # print(input.shape)
     torch_out = model(input)
 
     torch.onnx.export(

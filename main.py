@@ -79,8 +79,6 @@ def main():
         for file in os.listdir(path.join(DIR_PATH, 'runs')):
             shutil.rmtree(path.join(DIR_PATH, 'runs', file))
 
-    
-
     output_size = len(actions)
     hidden_size = 128
     num_layers = 2
@@ -91,6 +89,14 @@ def main():
     #myTestOnnx = TestOnnx()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    train_preprocess = Preprocess(
+            actions, DATA_PATH+"/Train", DIR_PATH, sequence_length, make_data_augmentation, device)
+    valid_preprocess = Preprocess(
+        actions, DATA_PATH+"/Valid", DIR_PATH, sequence_length, False, device)
+    test_preprocess = Preprocess(
+        actions, DATA_PATH+"/Test", DIR_PATH, sequence_length, False, device)
+
+    input_size = train_preprocess.get_data_length()
 
     if(make_train):
         learning_rate = 1e-4  # how much to update models parameters at each batch/epoch
@@ -101,16 +107,6 @@ def main():
 
         # on crée des instances de preprocess en leur donnant le chemin d'accès ainsi que le nombre de séquences dans chaque dossier
         # en fonction de si leur type de preprocess est train, valid, test.
-
-        train_preprocess = Preprocess(
-            actions, DATA_PATH+"/Train", DIR_PATH, sequence_length, make_data_augmentation, device)
-        valid_preprocess = Preprocess(
-            actions, DATA_PATH+"/Valid", DIR_PATH, sequence_length, False, device)
-        test_preprocess = Preprocess(
-            actions, DATA_PATH+"/Test", DIR_PATH, sequence_length, False, device)
-
-        input_size = train_preprocess.get_data_length()
-
         train_loader = DataLoader(train_preprocess, batch_size=batch_size, shuffle=True, num_workers=NUM_WORKERS,
                                 pin_memory=True)
 
@@ -129,9 +125,6 @@ def main():
             # model path: path.join(DIR_PATH, '/outputs/slr_' + str(output_size) + '.pth')
             model = myLSTM(input_size, hidden_size,
                 num_layers, output_size, device)
-            if os.path.exists(path.join(DIR_PATH, 'outputs/slr_' + str(output_size) + '.pth')):
-                model.load_state_dict(torch.load(path.join(DIR_PATH, 'outputs/slr_' + str(output_size) + '.pth')))
-                print("Model loaded")
 
             criterion = torch.nn.CrossEntropyLoss()
             optimizer = torch.optim.AdamW(
@@ -157,6 +150,7 @@ def main():
                         frame, targets = frame.cuda(), targets.cuda()
                         #frame, targets = frame.cuda().float(), targets.cuda().float()
                         optimizer.zero_grad()
+                        # print("frame.shape: ", frame.shape)
                         outputs = model(frame)
 
                         loss = criterion(outputs, targets)
