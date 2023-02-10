@@ -39,9 +39,9 @@
         "erase_runs" : false,
         "make_data_augmentation" : true,
         "make_dataset" : true,
-        "make_train" : false,
+        "make_train" : true,
         "make_tuto" : false,
-        "nb_epochs": 150,
+        "nb_epochs": 160,
         "nb_sequences" : 30,
         "sequence_length" : 30
     }
