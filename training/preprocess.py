@@ -29,10 +29,11 @@ def remove_points(results):
     return window
 
 class Preprocess():
-    def __init__(self, actions, DATA_PATH: str, sequence_length: int, data_augmentation: bool, device):
+    def __init__(self, actions, DATA_PATH: str, DIR_PATH, sequence_length: int, data_augmentation: bool, device):
 
         self.actions = actions
         self.DATA_PATH = DATA_PATH
+        self.DIR_PATH = DIR_PATH
         self.data_augmentation = data_augmentation
         self.sequence_length = sequence_length
         self.device = device
@@ -59,7 +60,7 @@ class Preprocess():
             res = json.load(dataPath)
             if (self.data_augmentation):
                 res = Data_augmentation(
-                    res).__getitem__()
+                    res, self.DIR_PATH).__getitem__()
             window.append(res)
         
         self.X = np.array(window)

@@ -150,6 +150,7 @@ class CustomImageDataset():
             cv2.putText(image, 'Video Number {}'.format(seq_ind), (15, 80),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv2.LINE_AA)
             cv2.imshow('OpenCV Feed', image)
+            # print(image.shape[1], image.shape[0])
             
             if (self.adapt_for_mirror):
                 keypoints = extract_keypoints_no_face_mirror(results, image.shape[1], image.shape[0])

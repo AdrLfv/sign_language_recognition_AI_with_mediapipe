@@ -103,11 +103,11 @@ def main():
         # en fonction de si leur type de preprocess est train, valid, test.
 
         train_preprocess = Preprocess(
-            actions, DATA_PATH+"/Train", sequence_length, make_data_augmentation, device)
+            actions, DATA_PATH+"/Train", DIR_PATH, sequence_length, make_data_augmentation, device)
         valid_preprocess = Preprocess(
-            actions, DATA_PATH+"/Valid", sequence_length, False, device)
+            actions, DATA_PATH+"/Valid", DIR_PATH, sequence_length, False, device)
         test_preprocess = Preprocess(
-            actions, DATA_PATH+"/Test", sequence_length, False, device)
+            actions, DATA_PATH+"/Test", DIR_PATH, sequence_length, False, device)
 
         input_size = train_preprocess.get_data_length()
 
@@ -187,19 +187,17 @@ def main():
         except Exception as e:
             raise e
             # print(e)
-
     
     if(convert_files):
-        try:
-            ort.InferenceSession(path.join(DIR_PATH, '/outputs/slr_' + str(output_size) + '.onnx'), providers=[
-                'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
-            print("Found valid onnx model")
-        except Exception as e:
-            print("Onnx model not found")
-            # print(e)
-            print("Converting pth to onnx")
-            export_to_onnx(input_size, hidden_size, num_layers, output_size, device, DIR_PATH)
+        print("Converting pth to onnx")
+        export_to_onnx(input_size, hidden_size, num_layers, output_size, device, DIR_PATH)
 
+        try:
+            ort.InferenceSession(path.join(DIR_PATH, 'outputs/slr_' + str(output_size) + '.onnx'), providers=[
+                'CPUExecutionProvider'])
+            print("Valid onnx model created")
+        except Exception as e:
+            raise(e)
 
     if make_tuto:
         myTuto = Tuto(actions, RESOLUTION_X, RESOLUTION_Y, DATA_PATH)
