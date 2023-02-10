@@ -41,7 +41,7 @@
         "make_dataset" : true,
         "make_train" : true,
         "make_tuto" : false,
-        "nb_epochs": 160,
+        "nb_epochs": 100,
         "nb_sequences" : 30,
         "sequence_length" : 30
     }

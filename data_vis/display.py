@@ -14,15 +14,16 @@ class NumpyArrayEncoder(JSONEncoder):
 
 def extract_keypoints_no_face_mirror(results, width, height):
     
+    face_lm_ind = [10, 152, 234, 454]
     pose = np.array([[res.x * width, res.y * height] for res in results.pose_landmarks.landmark]).flatten(
     ) if results.pose_landmarks else np.zeros(33*2)
-    # face = np.array([[res.x, res.y, res.z] for res in results.face_landmarks.landmark]).flatten(
-    # ) if results.face_landmarks else np.zeros(468*3)
+    face = np.array([[res.x * width, res.y * height] for res in [results.face_landmarks.landmark[i] for i in face_lm_ind]]).flatten(
+    ) if results.face_landmarks else np.zeros(4*2)
     lh = np.array([[res.x * width, res.y * height] for res in results.left_hand_landmarks.landmark]).flatten(
     ) if results.left_hand_landmarks else np.zeros(21*2)
     rh = np.array([[res.x * width, res.y * height] for res in results.right_hand_landmarks.landmark]).flatten(
     ) if results.right_hand_landmarks else np.zeros(21*2)
-    return np.concatenate([pose, lh, rh])
+    return np.concatenate([face, pose, lh, rh])
 
 def extract_keypoints_no_face_raw(results):
     pose = np.array([[res.x, res.y, res.z] for res in results.pose_landmarks.landmark]).flatten(
