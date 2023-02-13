@@ -4,6 +4,7 @@ boot:
 first_boot:
 	python3 -m main
 	mkdir -p runs
+	mkdir -p outputs
 	gnome-terminal -- sh -c "tensorboard --logdir=runs"
 	xdg-open http://localhost:6006
 	

@@ -4,3 +4,5 @@ runs/
 .venv/
 runs/
 outputs/
+
+config.json
