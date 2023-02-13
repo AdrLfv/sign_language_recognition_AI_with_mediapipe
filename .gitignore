@@ -3,6 +3,4 @@ __pycache__/
 runs/
 .venv/
 runs/
-outputs/
-
 config.json
