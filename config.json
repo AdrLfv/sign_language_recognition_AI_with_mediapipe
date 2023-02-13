@@ -1,0 +1,48 @@
+{
+    "name": "Second Self",
+    "camera": {
+        "type": "intel",
+        "flip": true,
+        "width": 640,
+        "height": 480,
+        "orientation": "horizontal",
+        "angle": 17,
+        "x_offset": -230,
+        "y_offset": 100
+    },
+    "mp_image": {
+        "width": 448,
+        "height": 480
+    },
+    "model_params": {
+        "actions": [
+            "nothing",
+            "empty",
+            "ok",
+            "yes",
+            "no",
+            "left",
+            "right",
+            "house",
+            "store",
+            "hello",
+            "goodbye",
+            "television",
+            "leave",
+            "eat",
+            "apple",
+            "peach"
+        ],  
+        "adapt_for_mirror" :true,
+        "convert_files" : true,
+        "erase_dataset" : false,
+        "erase_runs" : false,
+        "make_data_augmentation" : true,
+        "make_dataset" : true,
+        "make_train" : true,
+        "make_tuto" : false,
+        "nb_epochs": 140,
+        "nb_sequences" : 50,
+        "sequence_length" : 30
+    }
+}

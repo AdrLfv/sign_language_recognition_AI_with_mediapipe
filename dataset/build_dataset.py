@@ -128,11 +128,11 @@ class CustomImageDataset():
         image = np.zeros((1920, 1080,3), np.uint8)
 
         cv2.putText(image, 'STARTING COLLECTION', (120, 200),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4, cv2.LINE_AA)
+                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 4, cv2.LINE_AA)
         cv2.putText(image, 'Collecting frames for {}'.format(action), (15, 40),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 1, cv2.LINE_AA)
+                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 1, cv2.LINE_AA)
         cv2.putText(image, 'Video Number {}'.format(seq_ind), (15, 80),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv2.LINE_AA)
+                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 1, cv2.LINE_AA)
         cv2.imshow('OpenCV Feed', image)
         cv2.waitKey(2000)
 
@@ -146,9 +146,9 @@ class CustomImageDataset():
             image, results = mediapipe_detection(frame, holistic)
 
             cv2.putText(image, '{}'.format(action), (15, 40),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 1, cv2.LINE_AA)
+                        cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 1, cv2.LINE_AA)
             cv2.putText(image, 'Video Number {}'.format(seq_ind), (15, 80),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv2.LINE_AA)
+                        cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 1, cv2.LINE_AA)
             cv2.imshow('OpenCV Feed', image)
             # print(image.shape[1], image.shape[0])
             
